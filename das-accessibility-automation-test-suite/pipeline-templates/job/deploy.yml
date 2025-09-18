@@ -103,7 +103,7 @@ jobs:
               $(System.DefaultWorkingDirectory)/drop/tests/**/SFA.DAS.SupportConsole.UITests/SFA.DAS.SupportConsole.UITests.dll
               $(System.DefaultWorkingDirectory)/drop/tests/**/SFA.DAS.Transfers.UITests/SFA.DAS.Transfers.UITests.dll
               $(System.DefaultWorkingDirectory)/drop/tests/**/SFA.DAS.TransferMatching.UITests/SFA.DAS.TransferMatching.UITests.dll
-            arguments: '--no-build --configuration $(BuildConfiguration) --filter "Category=$(TestCategory)" --logger "trx;LogFileName=test_results.trx"'
+            arguments: '--filter "Category=$(TestCategory)" --logger "trx;LogFileName=test_results.trx"'
             testRunTitle: 'Local Accessibility test $(DATE_TIME)'
 
         # - task: AzurePowerShell@5

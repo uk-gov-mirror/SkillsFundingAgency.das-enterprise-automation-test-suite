@@ -42,6 +42,10 @@ variables:
   - group: "Release Automation Suite Variables (Db)"
   - group: "Provider Release Automation Suite Variables"
   - group: "RELEASE das-accessibility-automation-test-suite"
+  - group: "PreProd Management Resources"
+  - group: "PreProd Shared Resources"
+  - group: "PreProd Automation Suite Variables"
+  - group: "PREPROD das-accessibility-automation-test-suite"
   - name: Deploy
     value: $[or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.Reason'], 'Manual'), eq(variables['Build.Reason'], 'PullRequest'))]
 
@@ -60,25 +64,25 @@ resources:
       endpoint: SkillsFundingAgency
 
 stages:
-  - stage: Build
-    jobs:
-    - job: CodeBuild
+ - stage: Build
+  jobs:
+  - job: CodeBuild
     pool:
         name: DAS - Continuous Integration Agents
         workspace:
-            clean: all
+          clean: all
             
-	steps:
+   steps:
 	- task: DotNetCoreCLI@2
-		displayName: 'dotnet build'
-		inputs:
-		projects: 'src/**/*.csproj'
-		arguments: '--configuration $(buildConfiguration)'
+	displayName: 'dotnet build'
+	inputs:
+	    projects: 'src/**/*.csproj'
+	    arguments: '--configuration $(buildConfiguration)'
     
     - task: CopyFiles@2
-        displayName: 'Copy plain files to: $(build.artifactstagingdirectory)/tests/files'
-        inputs:
-        Contents: |
+      displayName: 'Copy plain files to: $(build.artifactstagingdirectory)/tests/files'
+      inputs:
+       Contents: |
             src/**/*.sql
             src/**/html2canvas.js
             src/**/appsettings.Config.json
@@ -93,14 +97,9 @@ stages:
         flattenFolders: true
         OverWrite: true
 
-  - stage: Deploy_PP
+ - stage: Deploy_PP
     dependsOn: Build
-    displayName: Deploy to PP
-    variables:
-      - group: "PreProd Management Resources"
-      - group: "PreProd Shared Resources"
-      - group: "PreProd Automation Suite Variables"
-      - group: "PREPROD das-accessibility-automation-test-suite"
+    displayName: Deploy to PP      
     jobs:
       - deployment: Deploy_AutomationTests
         displayName: 'Deploy Automation Tests to PP'

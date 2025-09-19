@@ -1,0 +1,170 @@
+# trigger:
+#   batch: true
+#   branches:
+#     include:
+#       - none
+# parameters:
+#   - name: Project
+#     type: string
+#     value: $(Project)
+#     default: |
+#         '**/SFA.DAS.ApprenticeAmbassadorNetwork.UITests/SFA.DAS.ApprenticeAmbassadorNetwork.UITests.csproj'
+#         '**/SFA.DAS.ApprenticeCommitments.UITests/SFA.DAS.ApprenticeCommitments.UITests.csproj'
+#         '**/SFA.DAS.Approvals.UITests/SFA.DAS.Approvals.UITests.csproj'
+#         '**/SFA.DAS.Campaigns.UITests/SFA.DAS.Campaigns.UITests.csproj'
+#         '**/SFA.DAS.EarlyConnectForms.UITests/SFA.DAS.EarlyConnectForms.UITests.csproj'
+#         '**/SFA.DAS.EmployerFinance.UITests/SFA.DAS.EmployerFinance.UITests.csproj'
+#         '**/SFA.DAS.EmployerProviderRelationships.UITests/SFA.DAS.EmployerProviderRelationships.UITests.csproj'
+#         '**/SFA.DAS.EPAO.UITests/SFA.DAS.EPAO.UITests.csproj'
+#         '**/SFA.DAS.FAA.UITests/SFA.DAS.FAA.UITests.csproj'
+#         '**/SFA.DAS.FAT-V2.UITests/SFA.DAS.FAT-V2.UITests.csproj'
+#         '**/SFA.DAS.FindEPAO.UITests/SFA.DAS.FindEPAO.UITests.csproj'
+#         '**/SFA.DAS.FlexiPayments.E2ETests/SFA.DAS.FlexiPayments.E2ETests.csproj'
+#         '**/SFA.DAS.ManagingStandards.UITests/SFA.DAS.ManagingStandards.UITests.csproj'
+#         '**/SFA.DAS.RAA-V2-Employer.UITests/SFA.DAS.RAA-V2-Employer.UITests.csproj'
+#         '**/SFA.DAS.RAA-V2-Provider.UITests/SFA.DAS.RAA-V2-Provider.UITests.csproj'
+#         '**/SFA.DAS.RAA-V2-QA.UITests/SFA.DAS.RAA-V2-QA.UITests.csproj'
+#         '**/SFA.DAS.RequestApprenticeshipTraining.UITests/SFA.DAS.RequestApprenticeshipTraining.UITests.csproj'
+#         '**/SFA.DAS.Registration.UITests/SFA.DAS.Registration.UITests.csproj'
+#         '**/SFA.DAS.Roatp.UITests/SFA.DAS.Roatp.UITests.csproj'
+#         '**/SFA.DAS.RoatpAdmin.UITests/SFA.DAS.RoatpAdmin.UITests.csproj'
+#         '**/SFA.DAS.SupportConsole.UITests/SFA.DAS.SupportConsole.UITests.csproj'
+#         '**/SFA.DAS.Transfers.UITests/SFA.DAS.Transfers.UITests.csproj'
+#         '**/SFA.DAS.TransferMatching.UITests/SFA.DAS.TransferMatching.UITests.csproj'
+
+variables:
+  - name: BuildConfiguration
+    value: release
+  - name: BuildPlatform
+    value: any cpu
+  - group: BUILD Management Resources
+  - group: "Release Automation Suite Variables"
+  - group: "Release Automation Suite Variables (Db)"
+  - group: "Provider Release Automation Suite Variables"
+  - group: "RELEASE das-accessibility-automation-test-suite"
+  - group: "PreProd Management Resources"
+  - group: "PreProd Shared Resources"
+  - group: "PreProd Automation Suite Variables"
+  - group: "PREPROD das-accessibility-automation-test-suite"
+  - name: Deploy
+    value: $[or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.Reason'], 'Manual'), eq(variables['Build.Reason'], 'PullRequest'))]
+
+resources:
+  repositories:
+    - repository: self
+    - repository: das-platform-building-blocks
+      type: github
+      name: SkillsFundingAgency/das-platform-building-blocks
+      ref: refs/tags/3.0.10
+      endpoint: SkillsFundingAgency
+    - repository: das-platform-automation
+      type: github
+      name: SkillsFundingAgency/das-platform-automation
+      ref: refs/tags/5.1.8
+      endpoint: SkillsFundingAgency
+
+stages:
+  - stage: Build
+    jobs:
+      - job: CodeBuild
+        pool:
+          name: DAS - Continuous Integration Agents
+        workspace:
+          clean: all
+        steps:
+          - task: DotNetCoreCLI@2
+            displayName: 'dotnet build'
+            inputs:
+              projects: 'src/**/*.csproj'
+              arguments: '--configuration $(buildConfiguration)'
+
+          - task: CopyFiles@2
+            displayName: 'Copy plain files to: $(build.artifactstagingdirectory)/tests/files'
+            inputs:
+              Contents: |
+                src/**/*.sql
+                src/**/html2canvas.js
+                src/**/appsettings.Config.json
+                src/**/appsettings.AdminConfig.json
+                src/**/appsettings.ProviderConfig.json
+                src/**/appsettings.TimeOutConfig.json
+                src/**/appsettings.TestExecution.json
+                src/**/appsettings.NServiceBusConfig.json
+                src/**/appsettings.BrowserStack.json
+                src/**/appsettings.ApiFramework.json
+              TargetFolder: '$(build.artifactstagingdirectory)/tests/files'
+              flattenFolders: true
+              OverWrite: true
+
+- stage: Deploy_PP
+  dependsOn: Build
+  displayName: Deploy to PP
+  jobs:
+    - deployment: Deploy_AutomationTests
+      displayName: 'Deploy Automation Tests to PP'
+      pool:
+        vmImage: 'windows-latest'
+      environment: PP
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - checkout: self
+                displayName: 'Checkout current branch'
+
+              - checkout: das-platform-automation
+                displayName: 'Checkout das-platform-automation templates'
+
+              - task: browserstackcom.browserstack-vsts-extension.browserstack-config-task.BrowserStackConfig@0
+                displayName: 'BrowserStack - Configuration'
+                inputs:
+                  BrowserStackServiceEndPoint: 'AS-Browserstack'
+
+             # - task: AzurePowerShell@5
+             #   displayName: "Get Agent's IP Address"
+             #   inputs:
+             #     azureSubscription: SFA-DIG-PreProd-ARM
+             #     ScriptType: 'InlineScript'
+             #     Inline: |
+             #       $script = Get-ChildItem -Path "$(Build.SourcesDirectory)" -Recurse -Filter Get-MyIpAddress.ps1 | Select-Object -First 1
+             #       if (-not $script) { throw "Could not find Get-MyIpAddress.ps1 anywhere!" }
+             #       Write-Host "Found script at $($script.FullName)"
+             #       & $script.FullName -WhatsMyIpUrl "https://ifconfig.me/ip"
+             #     azurePowerShellVersion: LatestVersion
+             
+             # - task: AzurePowerShell@5
+             #   displayName: "Whitelist agent's IP address"
+             #   inputs:
+             #     azureSubscription: SFA-DIG-PreProd-ARM
+             #     ScriptType: 'InlineScript'
+             #     Inline: |
+             #       $script = Get-ChildItem -Path "$(Build.SourcesDirectory)" -Recurse -Filter Add-AzSqlIpException.ps1 | Select-Object -First 1
+             #       if (-not $script) { throw "Could not find Add-AzSqlIpException.ps1 anywhere!" }
+             #       Write-Host "Found script at $($script.FullName)"
+             #       & $script.FullName -Name "$(System.DefinitionName)" -IPAddress "$(IPAddress)" -ResourceNamePattern "$(SharedSQLServerName)"
+             #     azurePowerShellVersion: LatestVersion    
+
+              - task: DotNetCoreCLI@2
+                displayName: 'Run ALL Accessibility Tests (Local Agent)'
+                inputs:
+                  command: test
+                  projects: ${{ parameters.Project }}
+                  arguments: '--no-build --configuration $(BuildConfiguration) --filter "TestCategory=$(TestCategory)" --logger "trx;LogFileName=test_results.trx"'
+                  testRunTitle: 'Accessibility test $(DATE_TIME)'
+                  publishTestResults: false
+
+               # - task: AzurePowerShell@5
+               #   displayName: "SQL - Remove Whitelisted Agent's IP Address"
+               #   condition: succeededOrFailed()
+               #   inputs:
+               #     azureSubscription: SFA-DIG-PreProd-ARM
+               #     ScriptType: 'InlineScript'
+               #     Inline: |
+               #       $script = Get-ChildItem -Path "$(Build.SourcesDirectory)" -Recurse -Filter Remove-AzSqlIpException.ps1 | Select-Object -First 1
+               #       if (-not $script) { throw "Could not find Remove-AzSqlIpException.ps1 anywhere!" }
+               #       Write-Host "Found script at $($script.FullName)"
+               #       & $script.FullName -Name "$(System.DefinitionName)" -IPAddress "$(IPAddress)" -ResourceNamePattern "$(SharedSQLServerName)"
+               #     azurePowerShellVersion: LatestVersion
+
+              - task: browserstackcom.browserstack-vsts-extension.reports-task.BrowserStackResults@1
+                displayName: 'BrowserStack - Results'

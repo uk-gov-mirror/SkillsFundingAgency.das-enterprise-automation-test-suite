@@ -2,7 +2,7 @@
 #   batch: true
 #   branches:
 #     include:
-#       - "*"
+#       - none
 
 workspace:
     clean: all

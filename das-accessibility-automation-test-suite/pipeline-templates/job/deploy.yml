@@ -45,11 +45,11 @@ jobs:
             SourcePath: '$(System.DefaultWorkingDirectory)/drop/tests'
             TargetFileNames: '*.json'
 
-        - script: dir $(System.DefaultWorkingDirectory) /S
-          displayName: 'List ALL contents in System.DefaultWorkingDirectory (recursive)'
+        # - script: dir $(System.DefaultWorkingDirectory) /S
+        #   displayName: 'List ALL contents in System.DefaultWorkingDirectory (recursive)'
 
-        - script: dir $(Build.SourcesDirectory) /S
-          displayName: 'List ALL contents in Build.SourcesDirectory (recursive)'
+        # - script: dir $(Build.SourcesDirectory) /S
+        #   displayName: 'List ALL contents in Build.SourcesDirectory (recursive)'
 
         # - task: AzurePowerShell@5
         #   displayName: "Get Agent's IP Address"

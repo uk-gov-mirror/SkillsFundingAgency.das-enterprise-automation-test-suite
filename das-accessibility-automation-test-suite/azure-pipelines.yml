@@ -3,11 +3,6 @@
 #     include:
 #       - master
 
-# parameters:
-#   - name: Project
-#     type: string
-#     default: '**/*.csproj'
-
 variables:
   - name: BuildConfiguration
     value: release
@@ -55,7 +50,7 @@ stages:
               arguments: '--configuration $(BuildConfiguration)'
 
           - task: CopyFiles@2
-            displayName: 'Copy plain files to: $(build.artifactstagingdirectory)/tests/files'
+            displayName: 'Copy plain files to: $(build.artifactstagingdirectory)../files'
             inputs:
               Contents: |
                 src/**/*.sql
@@ -68,7 +63,7 @@ stages:
                 src/**/appsettings.NServiceBusConfig.json
                 src/**/appsettings.BrowserStack.json
                 src/**/appsettings.ApiFramework.json
-              TargetFolder: '$(build.artifactstagingdirectory)/tests/files'
+              TargetFolder: '$(build.artifactstagingdirectory)/src/SFA.DAS.Campaigns.UITests/bin/$(BuildConfiguration)/files'
               flattenFolders: true
               OverWrite: true
 
@@ -100,7 +95,7 @@ stages:
                   displayName: 'Run ALL Accessibility Tests (Local Agent)'
                   inputs:
                     command: test
-                    projects: '**/*.csproj'
+                    projects: $(ProjectPath)
                     arguments: '--no-build --configuration $(BuildConfiguration) --filter "TestCategory=$(TestCategory)" --logger "trx;LogFileName=test_results.trx"'
                     testRunTitle: 'Accessibility test $(DATE_TIME)'
                     publishTestResults: false

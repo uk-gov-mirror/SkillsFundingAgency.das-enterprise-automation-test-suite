@@ -50,7 +50,7 @@ stages:
               arguments: '--configuration $(BuildConfiguration)'
 
           - task: CopyFiles@2
-            displayName: 'Copy plain files to: $(build.artifactstagingdirectory)../files'
+            displayName: 'Copy plain files to: $(build.artifactstagingdirectory)/src'
             inputs:
               Contents: |
                 src/**/*.sql
@@ -63,7 +63,7 @@ stages:
                 src/**/appsettings.NServiceBusConfig.json
                 src/**/appsettings.BrowserStack.json
                 src/**/appsettings.ApiFramework.json
-              TargetFolder: '$(build.artifactstagingdirectory)/src/SFA.DAS.Campaigns.UITests/bin/$(BuildConfiguration)/files'
+              TargetFolder: '$$(Build.SourcesDirectory)/src/SFA.DAS.Campaigns.UITests/bin/$(BuildConfiguration)/net8.0/files'
               flattenFolders: true
               OverWrite: true
 

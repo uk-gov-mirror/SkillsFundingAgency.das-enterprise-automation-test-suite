@@ -106,6 +106,13 @@ stages:
                       Get-ChildItem Env: | Sort-Object Name
                       Write-Host "----------------------------------------"
 
+                - script: |
+                    echo "##[section]Working Directory:"
+                    cd
+                    echo "##[section]Folder Contents:"
+                    dir
+                  displayName: 'Print working directory and list folders'
+
                 - task: DotNetCoreCLI@2
                   displayName: 'Run ALL Accessibility Tests (Local Agent)'
                   inputs:

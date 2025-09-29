@@ -91,6 +91,21 @@ stages:
                   inputs:
                     BrowserStackServiceEndPoint: 'AS-Browserstack'
 
+                - script: dir $(System.DefaultWorkingDirectory) /S
+                  displayName: 'List ALL contents in System.DefaultWorkingDirectory (recursive)'
+
+                - script: dir $(Build.SourcesDirectory) /S
+                  displayName: 'List ALL contents in Build.SourcesDirectory (recursive)'
+
+                - task: PowerShell@2
+                  displayName: 'Debug - List All Environment Variables'
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      Write-Host "--- Listing All Environment Variables ---"
+                      Get-ChildItem Env: | Sort-Object Name
+                      Write-Host "----------------------------------------"
+
                 - task: DotNetCoreCLI@2
                   displayName: 'Run ALL Accessibility Tests (Local Agent)'
                   inputs:

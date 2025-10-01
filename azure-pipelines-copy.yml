@@ -30,12 +30,12 @@ steps:
     projects: 'src/**/*.csproj'
     arguments: '--configuration $(buildConfiguration)'
 
-# - task: DotNetCoreCLI@2
-#   displayName: dotnet unit test
-#   inputs:
-#     command: 'test'
-#     arguments: '--filter "TestCategory=Unittests" --logger trx;logfilename=UnittestResults.trx'
-#     projects: 'src/**/*SFA.DAS.Approvals.UITests/SFA.DAS.Approvals.UITests.csproj'
+- task: DotNetCoreCLI@2
+  displayName: dotnet unit test
+  inputs:
+    command: 'test'
+    arguments: '--filter "TestCategory=Unittests" --logger trx;logfilename=UnittestResults.trx'
+    projects: 'src/**/*SFA.DAS.Approvals.UITests/SFA.DAS.Approvals.UITests.csproj'
 
 - task: DotNetCoreCLI@2
   displayName: 'dotnet pack'
@@ -66,7 +66,7 @@ steps:
      src/**/appsettings.TimeOutConfig.json
      src/**/appsettings.TestExecution.json
      src/**/appsettings.NServiceBusConfig.json
-     # src/**/appsettings.BrowserStack.json
+     src/**/appsettings.BrowserStack.json
      src/**/appsettings.ApiFramework.json
     TargetFolder: '$(build.artifactstagingdirectory)/tests/files'
     flattenFolders: true

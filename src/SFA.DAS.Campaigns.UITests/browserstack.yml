@@ -1,0 +1,20 @@
+userName: $(BROWSERSTACK_USERNAME)
+accessKey: $(BROWSERSTACK_ACCESS_KEY)
+platforms:
+  - os: Windows
+    osVersion: 11
+    browserName: Chrome
+    browserVersion: latest
+parallelsPerPlatform: 2    
+browserstackLocal: false
+buildName: Apprenticeship website
+projectName: ApprenticeshipService
+CUSTOM_TAG_1: "camps"
+CUSTOM_TAG_2: "accessibility"
+# Use CUSTOM_TAG_<N> and set more build tags as you need.
+#debug: true
+networkLogs: true
+consoleLogs: info
+browserstackAutomation: true
+logLevel: debug
+accessibility: true
